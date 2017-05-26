@@ -35,3 +35,8 @@ It will be up to bundler (browserify, webpack) to decide what to do. For example
  - mapbox can decide to continue to use Browserify + Webworkify and generate single file e.g. `require('../../source/worker.webworker');` will be transformed to `window.URL.createObjectURL(new WebWorkify(require('../../source/worker'), {bare: true}));` behind the scene.
  - or in case of [react-map-gl](https://github.com/uber/react-map-gl) + CRA, webpack can be instructed to generate URLs
  
+## TODO
+
+- How to instruct webpack to generate URLs for `require('*.webworker')` in node folder and generate corresponding files to web folder.
+- Change ESLint settings to suport `self` keyword in webworkers
+- Test how import works in `*.webworker` file
