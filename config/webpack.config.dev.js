@@ -106,21 +106,21 @@ const webConfiguration = {
 
       // First, run the linter.
       // It's important to do this before Babel processes the JS.
-      // TODO: change eslint config to suport self
-      // {
-      //   test: /\.(js|jsx)$/,
-      //   enforce: 'pre',
-      //   use: [
-      //     {
-      //       options: {
-      //         formatter: eslintFormatter,
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /\.webworker\.(js|jsx)$/,
+        enforce: 'pre',
+        use: [
+          {
+            options: {
+              formatter: eslintFormatter,
 
-      //       },
-      //       loader: require.resolve('eslint-loader'),
-      //     },
-      //   ],
-      //   include: paths.appSrc,
-      // },
+            },
+            loader: require.resolve('eslint-loader'),
+          },
+        ],
+        include: paths.appSrc,
+      },
       // ** ADDING/UPDATING LOADERS **
       // The "file" loader handles all assets unless explicitly excluded.
       // The `exclude` list *must* be updated with every change to loader extensions.
@@ -175,8 +175,9 @@ const webConfiguration = {
         test: /\.webworker\.(js|jsx)$/,
         loader: require.resolve('file-loader'),
         options: {
+          emitFile: false,
           // This should be the same as webWorkerConfiguration.output.filename
-          name: 'static/js/[name].[hash:8].js',
+          name: 'static/js/[name].js', //.[hash:8]
         },
       },
       // "postcss" loader applies autoprefixer to our CSS.
@@ -270,11 +271,46 @@ const webConfiguration = {
 const webWorkerConfiguration = Object.assign({}, webConfiguration, {
   target: 'webworker',
   // Entry uses function which returns array of paths
-  entry: paths.webworkerPaths,
+  entry: paths.webworkerPaths(),
+  module: {
+    strictExportPresence: false,
+    rules: [
+      // {
+      //   test: /\.(js|jsx)$/,
+      //   enforce: 'pre',
+      //   use: [
+      //     {
+      //       options: {
+      //         formatter: eslintFormatter,
+
+      //       },
+      //       loader: require.resolve('eslint-loader'),
+      //     },
+      //   ],
+      //   include: paths.appSrc,
+      // },
+      // Process JS with Babel.
+      {
+        test: /\.(js|jsx)$/,
+        include: paths.appSrc,
+        loader: require.resolve('babel-loader'),
+        options: {
+          cacheDirectory: true,
+        },
+      },
+    ],
+  },
+  plugins: [
+    new webpack.DefinePlugin(env.stringified),
+    new webpack.HotModuleReplacementPlugin(),
+    new CaseSensitivePathsPlugin(),
+    new WatchMissingNodeModulesPlugin(paths.appNodeModules),
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+  ],
 });
 
-Object.assign(webWorkerConfiguration.output, {
-  filename: 'static/js/[name].[hash:8].js',
+webWorkerConfiguration.output = Object.assign({}, webWorkerConfiguration.output, {
+  filename: 'static/js/[name].js', // .[hash:8]
 });
 
-module.exports = [webConfiguration, webWorkerConfiguration];
+module.exports = [webWorkerConfiguration, webConfiguration];

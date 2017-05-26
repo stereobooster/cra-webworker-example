@@ -58,5 +58,10 @@ module.exports = {
   publicPath: '/',
   webworkerPaths: function() {
     return glob.sync(resolveApp('src') + '**/*.webworker.js')
+      .map(path => [path.match(/\/([^\/]+\.webworker)\.js$/)[1], path] )
+      .reduce(function(result, item) {
+        result[item[0]] = item[1];
+        return result;
+      }, {});
   }
 };
